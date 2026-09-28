@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Trailhead Weather</title>
+  <meta name="description" content="Live weather for all 63 U.S. National Parks: current conditions, 7-day forecasts, hourly outlooks, air quality and advisories, powered by Open-Meteo.">
+  <meta name="theme-color" content="#2f4a32">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://api.open-meteo.com">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+  <link rel="stylesheet" href="css/styles.css">
+  <script>
+    try {
+      var t = localStorage.getItem("theme");
+      if (t) document.documentElement.setAttribute("data-theme", t);
+    } catch (e) {}
+  </script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <a class="brand" href="./" aria-label="Trailhead Weather home">
+        <svg class="brand-mark" viewBox="0 0 40 40" aria-hidden="true">
+          <circle cx="27" cy="12" r="5" fill="var(--ochre)"/>
+          <path d="M2 34 L14 14 L21 25 L26 18 L38 34 Z" fill="var(--forest)"/>
+          <path d="M14 14 L18 20.5 L15.5 19 L12.5 21 Z" fill="var(--surface)"/>
+        </svg>
+        <span class="brand-text">
+          <span class="brand-name">Trailhead Weather</span>
+          <span class="brand-tag">Conditions across all 63 U.S. National Parks</span>
+        </span>
+      </a>
+      <div class="header-actions">
+        <div class="seg" role="group" aria-label="Units">
+          <button type="button" class="seg-btn" data-units="imperial" aria-pressed="true">°F</button>
+          <button type="button" class="seg-btn" data-units="metric" aria-pressed="false">°C</button>
+        </div>
+        <button type="button" class="icon-btn" id="refresh-btn" aria-label="Refresh weather" title="Refresh weather">
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.34-5.66M20 4v5h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <button type="button" class="icon-btn" id="theme-btn" aria-label="Toggle dark mode" title="Toggle dark mode">
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main id="main" class="wrap">
+    <section class="intro">
+      <h1>Today in the parks</h1>
+      <p class="updated" id="updated" aria-live="polite">Loading live conditions…</p>
+    </section>
+
+    <div id="error" class="error-banner" role="alert" hidden></div>
+
+    <section class="stats" id="stats" aria-label="Summary across all parks"></section>
+
+    <section class="toolbar" aria-label="Filter and sort parks">
+      <label class="field search">
+        <span class="visually-hidden">Search parks</span>
+        <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="M20 20l-4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <input id="search" type="search" placeholder="Search by park or state" autocomplete="off">
+      </label>
+      <label class="field">
+        <span class="field-label">Region</span>
+        <select id="region"><option value="">All regions</option></select>
+      </label>
+      <label class="field">
+        <span class="field-label">Sort</span>
+        <select id="sort">
+          <option value="name">Name (A–Z)</option>
+          <option value="temp-desc">Warmest now</option>
+          <option value="temp-asc">Coldest now</option>
+          <option value="wind-desc">Windiest</option>
+          <option value="precip-desc">Rain/snow chance</option>
+          <option value="uv-desc">Highest UV</option>
+          <option value="est-asc">Oldest park</option>
+        </select>
+      </label>
+      <label class="check">
+        <input type="checkbox" id="fav-only"> Favorites
+      </label>
+      <label class="check">
+        <input type="checkbox" id="adv-only"> With advisories
+      </label>
+      <div class="seg view-seg" role="group" aria-label="View">
+        <button type="button" class="seg-btn" data-view="cards" aria-pressed="true">Cards</button>
+        <button type="button" class="seg-btn" data-view="map" aria-pressed="false">Map</button>
+        <button type="button" class="seg-btn" data-view="table" aria-pressed="false">Table</button>
+      </div>
+    </section>
+
+    <p class="result-count" id="result-count" aria-live="polite"></p>
+
+    <section id="view-cards" class="cards" aria-label="Parks"></section>
+    <section id="view-map" class="map-view" hidden>
+      <div id="map" aria-label="Map of national parks with current temperatures"></div>
+      <div class="legend" id="legend" aria-hidden="true"></div>
+    </section>
+    <section id="view-table" class="table-view" hidden>
+      <div class="table-scroll">
+        <table class="park-table">
+          <thead>
+            <tr>
+              <th scope="col">Park</th>
+              <th scope="col">Region</th>
+              <th scope="col" class="num">Now</th>
+              <th scope="col" class="num">Feels</th>
+              <th scope="col" class="num">High / Low</th>
+              <th scope="col">Conditions</th>
+              <th scope="col" class="num">Wind</th>
+              <th scope="col" class="num">Precip</th>
+              <th scope="col" class="num">UV</th>
+              <th scope="col">Advisories</th>
+            </tr>
+          </thead>
+          <tbody id="table-body"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <dialog id="detail" class="detail" aria-labelledby="detail-title">
+    <div class="detail-inner" id="detail-body"></div>
+  </dialog>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <p>Weather data by <a href="https://open-meteo.com/" rel="noopener">Open-Meteo.com</a> (CC BY 4.0). Map tiles © <a href="https://www.openstreetmap.org/copyright" rel="noopener">OpenStreetMap</a> contributors, © <a href="https://carto.com/attributions" rel="noopener">CARTO</a>.</p>
+      <p>Forecasts are model-based and cover a single point per park. Conditions vary with elevation. Check <a href="https://www.nps.gov/" rel="noopener">nps.gov</a> for official alerts and closures before you go.</p>
+    </div>
+  </footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer></script>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
