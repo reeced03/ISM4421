@@ -129,6 +129,8 @@ button, input, select { font: inherit; color: inherit; }
 
 /* ---------- Sign in with Google ---------- */
 .auth { display: flex; align-items: center; gap: 8px; min-height: 32px; }
+/* Google's button is an iframe; a dark color scheme paints a white box around it. */
+.auth > div { color-scheme: light; }
 .auth-user { display: inline-flex; align-items: center; gap: 6px; min-width: 0; }
 .auth-avatar { width: 28px; height: 28px; border-radius: 999px; flex: none; }
 .auth-name { max-width: 120px; font-size: 13px; font-weight: 600; color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
