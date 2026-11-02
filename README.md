@@ -11,6 +11,7 @@ Live weather for all 63 U.S. National Parks, built on the free [Open-Meteo](http
 - **Park detail**: local time, current conditions, pressure, UV, sunrise/sunset and daylight, US AQI (Open-Meteo Air Quality API), an interactive 48-hour temperature and precipitation chart, and a 7-day forecast.
 - **Derived advisories**: heat, cold, high wind, thunderstorms, heavy rain or snow, high UV.
 - °F/°C toggle, light/dark theme, starred favorites (saved in your browser), and shareable deep links (`/#park=yellowstone`).
+- **Optional Sign in with Google** (Google Identity Services): shows your name and photo in the header. There is no backend, so it identifies the visitor for display only and does not protect any data.
 - Responses are cached in `sessionStorage` for 15 minutes and refreshed automatically.
 
 ## Project layout
@@ -21,6 +22,8 @@ css/styles.css    Earthy theme (light + dark)
 js/parks.js       The 63 national parks: coordinates, states, region, year established
 js/weather.js     Open-Meteo client, weather codes, icons, unit conversion, advisories
 js/app.js         UI: rendering, filters, map, detail dialog, hourly chart
+js/auth.js        Optional Sign in with Google
+privacy.html      Privacy policy (required by Google for the consent screen)
 netlify.toml      Netlify publish + header settings
 ```
 
